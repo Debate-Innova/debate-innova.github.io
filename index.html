@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cronómetro</title>
+    <link rel="icon" type="image/x-icon" href="./favicon.ico">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #121212;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .contenedor {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 80%;
+            max-width: 1200px;
+            background-color: #1e1e1e;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+        }
+
+        .postura {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .nombrePostura {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .turno {
+            width: 210px;
+            padding: 16px 22px;
+            margin: 12px 0;
+            border-radius: 25px;
+            text-align: center;
+            font-weight: bold;
+            background-color: #4A4A4A;
+            color: white;
+            transition: 0.3s;
+            font-size: 18px;
+            border: 1px solid #6E6E6E;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .active {
+            background-color: #fa7b2c !important;
+            border-color: #fa7b2c !important;
+            color: white;
+        }
+
+        .completed {
+            background-color: gray !important;
+            color: white;
+        }
+
+        .centro {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #orador {
+            font-size: 40px;
+            margin-bottom: 20px;
+        }
+
+        #temporizador {
+            font-size: 95px;
+            font-weight: bold;
+            color: white;
+            background-color: #222;
+            padding: 15px 30px;
+            border-radius: 15px;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        #temporizador.tempVerde {
+            color: #5bde09;
+        }
+        #temporizador.tempRojo {
+            color: red;
+        }
+
+        .botones {
+            margin-top: 30px;
+            display: flex;
+            gap: 40px;
+        }
+
+        .grupoBtn {
+            display: flex;
+            gap: 8px;
+        }
+
+        button {
+            width: 60px;
+            height: 60px;
+            background-color: #fa7b2c;
+            border: none;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background-color: #b45a21;
+        }
+
+        button:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+        }
+    </style>
+
+<body>
+
+    <div class="contenedor">
+        <div class="postura" id="posturaAF">
+            <span class="nombrePostura">A FAVOR</span>
+            <div class="turno" id="turnoA1">Introducción</div>
+            <div class="turno" id="turnoA2">Examen Cruzado</div>
+            <div class="turno" id="turnoA3">Refutación 1</div>
+            <div class="turno" id="turnoA4">Refutación 2</div>
+            <div class="turno" id="turnoA5">Conclusión</div>
+        </div>
+
+        <div class="centro">
+            <h1 id="orador"></h1>
+            <div id="temporizador">04:00</div>
+            <div class="botones">
+                <div class="grupoBtn">
+                    <button onclick="iniciarOpausarTemporizador()" id="btnIniciarPausar">►</button>
+                    <button onclick="reiniciarContador()" id="btnReiniciar" disabled>↺</button>
+                </div>
+                <div class="grupoBtn">
+                    <button onclick="pasarTurno(-1)" id="btnRetrocederTurno" disabled>⏮</button>
+                    <button onclick="pasarTurno(1)" id="btnSiguienteTurno">⏭</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="postura" id="posturaEC">
+            <span class="nombrePostura">EN CONTRA</span>
+            <div class="turno" id="turnoB1">Introducción</div>
+            <div class="turno" id="turnoB2">Examen Cruzado</div>
+            <div class="turno" id="turnoB3">Refutación 1</div>
+            <div class="turno" id="turnoB4">Refutación 2</div>
+            <div class="turno" id="turnoB5">Conclusión</div>
+        </div>
+    </div>
+
+
+    <script>
+        const turnos = [
+            { nombre: "Martín", rol: "Introducción (AF)", postura: "A", id: "turnoA1", tiempo: 4, margen: 0.16666667 },
+            { nombre: "Martín", rol: "Examen Cruzado (AF)", postura: "A", id: "turnoA2", tiempo: 2, margen: 0.25 },
+            { nombre: "Alberto", rol: "Introducción (EC)", postura: "B", id: "turnoB1", tiempo: 4, margen: 0.16666667 },
+            { nombre: "Alberto", rol: "Examen Cruzado (EC)", postura: "B", id: "turnoB2", tiempo: 2, margen: 0.25 },
+            { nombre: "Alejandro", rol: "Refutación 1 (AF)", postura: "A", id: "turnoA3", tiempo: 5, margen: 0.16666667 },
+            { nombre: "Irene", rol: "Refutación 1 (EC)", postura: "B", id: "turnoB3", tiempo: 5, margen: 0.16666667 },
+            { nombre: "Gonzalo", rol: "Refutación 2 (AF)", postura: "A", id: "turnoA4", tiempo: 5, margen: 0.16666667 },
+            { nombre: "Carlos", rol: "Refutación 2 (EC)", postura: "B", id: "turnoB4", tiempo: 5, margen: 0.16666667 },
+            { nombre: "Laura", rol: "Conclusión (EC)", postura: "B", id: "turnoB5", tiempo: 3, margen: 0.16666667 },
+            { nombre: "Juanjosée", rol: "Conclusión (AF)", postura: "A", id: "turnoA5", tiempo: 3, margen: 0.16666667 }
+        ];
+
+        let turnoActual = 0;
+        let temporizador;
+        let segundosRestantes = turnos[turnoActual].tiempo * 60;
+        let margenEnSegundos = turnos[turnoActual].margen * 60;
+
+        function actualizarIU() {
+            document.getElementById("orador").textContent = turnos[turnoActual].nombre;
+            var cadenaTiempo = formatearTemporizador(segundosRestantes);
+            var temporizador = document.getElementById("temporizador");
+            temporizador.textContent = cadenaTiempo;
+            if (segundosRestantes == margenEnSegundos) {
+                temporizador.classList.add("tempVerde");
+            }
+            else if (segundosRestantes == -margenEnSegundos - 1) {
+                temporizador.classList.add("tempRojo");
+            }
+
+            const todosLosTurnos = document.querySelectorAll(".turno");
+            todosLosTurnos.forEach(el => el.classList.remove("active", "completed"));
+
+            // Se colorea la columna izquierda primero y luego la derecha
+            for (let i = 0; i < turnoActual; i++) {
+                document.getElementById(turnos[i].id).classList.add("completed");
+            }
+            document.getElementById(turnos[turnoActual].id).classList.add("active");
+        }
+
+        function formatearTemporizador(segundos) {
+            let absSegundos = Math.abs(segundos); // Convertimos a positivo para formatear correctamente
+            let minutos = Math.floor(absSegundos / 60);
+            let segs = absSegundos % 60;
+            let tiempoFormateado = `${String(minutos).padStart(2, "0")}:${String(segs).padStart(2, "0")}`;
+
+            return segundos < 0 ? `- ${tiempoFormateado}` : tiempoFormateado;
+        }
+
+        function iniciarOpausarTemporizador() {
+            // Si no hay temporizador activo, lo iniciamos
+            if (!temporizador) iniciarTemporizador();
+            // Si lo hay, lo pausamos
+            else pausarTemporizador();
+        }
+
+        function iniciarTemporizador() {
+            document.getElementById("btnReiniciar").disabled = false;
+
+            // Lógica del temporizador
+            segundosRestantes--;
+            actualizarIU();
+            temporizador = setInterval(() => {
+                segundosRestantes--;
+                actualizarIU();
+            }, 1000);
+
+            // Nombre del botón a "Pausar"
+            document.querySelector("button[onclick='iniciarOpausarTemporizador()']").textContent = "⏸";
+        }
+
+        function pausarTemporizador() {
+            // Lógica del temporizador
+            clearInterval(temporizador);
+            temporizador = null;
+
+            // Nombre del botón a "Iniciar"
+            document.querySelector("button[onclick='iniciarOpausarTemporizador()']").textContent = "►";
+        }
+
+        function reiniciarContador() {
+            // Reiniciar el temporizador
+            pausarTemporizador();
+            segundosRestantes = turnos[turnoActual].tiempo * 60;
+            margenEnSegundos = turnos[turnoActual].margen * 60;
+            actualizarIU();
+        }
+
+        function pasarTurno(direccion) {
+            // Pausar el temporizador al pasar de turno
+            pausarTemporizador();
+            // Deshabilitar el botón de reiniciar
+            document.getElementById("btnReiniciar").disabled = true;
+
+            turnoActual = turnoActual + direccion;
+
+            if (turnoActual == turnos.length) {
+                // Colorear el último turno como completado
+                document.getElementById(turnos[turnoActual - 1].id).classList.add("completed");
+
+                // Eliminar todos los botones de la interfaz
+                document.querySelectorAll("button").forEach(button => button.remove());
+
+                // Eliminar el temporizador
+                document.getElementById("temporizador").remove();
+
+                // Mantener el espacio ocupado por el título con un carácter invisible
+                const title = document.getElementById("orador");
+                title.textContent = "Fin del debate"; // Espacio no separable
+            }
+            else {
+                if (turnoActual <= 1) {
+                    if (turnoActual <= 0) {
+                        turnoActual = 0;
+                        document.getElementById("btnRetrocederTurno").disabled = true;
+                    } else {
+                        document.getElementById("btnRetrocederTurno").disabled = false;
+                    }
+                }
+                segundosRestantes = turnos[turnoActual].tiempo * 60;
+                margenEnSegundos = turnos[turnoActual].margen * 60;
+                document.getElementById("temporizador").classList.remove("tempVerde", "tempRojo");
+                actualizarIU();
+            }
+        }
+
+
+        actualizarIU();
+    </script>
+
+</body>
+
+</html>
